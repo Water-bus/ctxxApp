@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
-import { View, Text,StatusBar, TouchableWithoutFeedback,Platform, Image, TouchableOpacity, Modal, StyleSheet } from 'react-native'
+import { View, Text,StatusBar,NativeModules, TouchableWithoutFeedback,Platform, Image, TouchableOpacity, Modal, StyleSheet } from 'react-native'
 import { ifIphoneX } from 'react-native-iphone-x-helper'
 import storage from '../gStorage';
-import myFetch from '../myFetch'
-import Login from '../login';
 
+const { StatusBarManager } = NativeModules;
+const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBarManager.HEIGHT;
 export default class MyHeader extends Component {
 
     constructor(props) {
@@ -16,7 +16,7 @@ export default class MyHeader extends Component {
   componentDidMount () {
     // 广告页隐藏状态栏
     if (Platform.OS === 'android') {
-      StatusBar.setBackgroundColor('#494c54')// 仅android
+      StatusBar.setTranslucent(true)// 仅android
     }
   }
 
@@ -32,10 +32,10 @@ export default class MyHeader extends Component {
   }
 
   renderRightBtn () {
-    if (this.props.rightBtn) {
-      return  (<TouchableOpacity style={styles.btnView} onPress={() => this.returnFun()}>
-      
-    </TouchableOpacity>)
+    if (this.props.rightBtn=="exit") {
+      return  (<TouchableOpacity style={styles.btnView} onPress={() => this.goLogin()}>
+            <Image source={require('../image/Exit.png')} resizeMode='contain' style={styles.leftBtn} />
+        </TouchableOpacity>)
     } else {
       return <View style={styles.btnView}></View>
     }
@@ -46,64 +46,41 @@ export default class MyHeader extends Component {
       return (<TouchableOpacity style={styles.btnView} onPress={() => this.returnFun()}>
       <Image source={require('../image/Back.png')} resizeMode='contain' style={styles.leftBtn} />
       </TouchableOpacity>)
-    } else if (this.props.leftBtn === 'close') {
-        return (<TouchableOpacity style={styles.btnView} onPress={() => this.closeFun()}>
-        <Image source={require('../image/Cancel.png')} resizeMode='contain' style={styles.leftBtn} />
-        </TouchableOpacity>)
+    }else if (this.props.leftBtn=="exit") {
+      return  (<TouchableOpacity style={styles.btnView} onPress={() => this.goLogin()}>
+      <Image source={require('../image/Exit.png')} resizeMode='contain' style={styles.leftBtn} />
+      </TouchableOpacity>)
     } else {
       return <View style={styles.btnView}></View>
     }
   }
 
   goLogin(){
-    console.log(this.props.navigation)
-    const {navigate} = this.props.navigation;
-
-    storage.save({
-      key:'user',    // 注意:请不要在key中使用_下划线符号!
-      rawData: {
-          account:'',
-          password:''
-      },
-    });
+    const { navigate } = this.props.navigation; 
+    storage.remove({
+              key:'user'
+            });
     navigate('Login')
+        // MyFetch.get(
+        //     '/applogout',
+        //     '',
+        //     res => {
+        //       storage.remove({
+        //         key:'user'
+        //       });
+        //       navigate('Login')
+        //     },
+        //     err => {
+        //       Alert.alert('登录发生错误：', err.message, [
+        //         { text: '确定' }
+        //       ])
+        //     }
+        //   )
   }
 
   render () {
     return (
       <View style={styles.rootView}>
-        <StatusBar
-          StatusBarStyle='light-content'
-        />
-        <Modal
-          style={styles.modal}
-          animationType='fade'           // 从底部滑入
-          transparent={true}             //  透明
-          visible={this.state.isModal}    // 根据isModal决定是否显示
-          onRequestClose={() => {this.onRequestClose()}}  // android必须实现
-        >
-            <TouchableWithoutFeedback onPress={() => this.setState({isModal:false})}>
-            {/* 关闭页面 */}
-              <View style={styles.modalViewStyle}>
-
-                <View style={{width:'100%',height:'100%',position:'absolute',backgroundColor:'#000',opacity:0.8,top:0,left:0}}>
-                </View>
-                <View style={styles.modalViewStyle}>
-                  <View style={{width:250,opacity:1,height:144,backgroundColor:'white',borderRadius:15,flexDirection: 'column',alignItems: 'center',justifyContent: 'center'}}>
-                    <View style={{flex:1,alignItems: 'center',justifyContent: 'center'}}><Text style={{fontSize:16,lineHeight:90}}>确定要退出登录吗</Text></View>
-                    <View style={{flex:1,alignItems: 'center',flexDirection:'row',justifyContent: 'center'}}>
-                      <TouchableOpacity style={{opacity:1,flex:1,alignItems: 'center',flexDirection:'row',justifyContent: 'center'}} onPress={() => this.setState({isModal:false})}>
-                        <Image source={require('../image/no.png')} resizeMode='contain' style={{height:42,width:42}} />
-                      </TouchableOpacity>
-                      <TouchableOpacity style={{opacity:1,flex:1,alignItems: 'center',flexDirection:'row',justifyContent: 'center'}} onPress={() => this.goLogin()}>
-                        <Image source={require('../image/ok.png')} resizeMode='contain' style={{height:42,width:42}} />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            </TouchableWithoutFeedback>
-        </Modal>
         <View style={styles.viewBox}>
             {this.renderLeftBtn()}
             <View style={styles.titleView}>
@@ -121,16 +98,17 @@ const styles = StyleSheet.create({
     ...ifIphoneX({
         height: 84
     }, {
-        height: 70
+        height: 44
     }),
-    backgroundColor: '#484c55',
-    borderBottomWidth: 1,
-    borderBottomColor: '#484c55',
+    backgroundColor: 'transparent',
+    borderBottomWidth: 0,
+    marginTop:STATUSBAR_HEIGHT,
+    borderBottomColor: '#6291F7',
     flexDirection: 'row',
     alignItems: 'flex-end'
   },
   viewBox: {
-    backgroundColor: '#484c55',
+    backgroundColor: 'transparent',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center'
@@ -151,11 +129,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     lineHeight:50,
+    fontWeight:"600",
     color: '#fff',
     height: 50,
   },
   leftBtn: {
-      height: 16
+      height: 17
   },
   modal:{
     flex:1,

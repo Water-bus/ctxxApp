@@ -1,20 +1,25 @@
 import React from 'react';
-import {StackNavigator} from 'react-navigation';
-import {Platform, UIManager} from 'react-native';
-import Ad from './ad'
+import { createStackNavigator, createAppContainer } from 'react-navigation'
+import {Platform, UIManager,NetInfo,} from 'react-native';
+import SplashScreen from 'react-native-splash-screen';
 import Login from './login'
 import List from './list'
 import Detali from './detail'
+import Menu from './menu'
 
 
 // ignore remote debugger warning
 console.ignoredYellowBox = ['Remote debugger'];
 
 // 启用layout动画
+
+setTimeout(() => {
+  SplashScreen.hide()
+}, 2000)
+
 if (Platform.OS === 'android') {
     UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-
 // release版本中屏蔽控制台输出, 提高性能
 if (!__DEV__) {
     global.console = {
@@ -28,31 +33,26 @@ if (!__DEV__) {
         },
     };
 }
-
-const AppRootStackNavigator = StackNavigator(
-    {
-        Ad:{
-          screen:Ad
-        },
-        Login:{
-          screen:Login
-        },
-        List:{
-          screen:List
-        },
-        Detali:{
-          screen:Detali
-        }
+const AppRootStackNavigator = createStackNavigator({
+    Login:{
+      screen:Login
     },
-    {
-      headerMode: 'none', // 头部标题不显示
-      navigationOptions: {
-        gesturesEnabled: false // 禁止iOS的右划后退动作
-      }
+    List:{
+      screen:List
+    },
+    Detali:{
+      screen:Detali
+    },
+    Menu:{
+      screen:Menu
     }
-);
+  },
+  {
+    initialRouteName: 'Menu',
+    headerMode: 'none',
+  });
 
-// export default AppRootStackNavigator
 
-export default () =>
-    <AppRootStackNavigator/>
+  const App = createAppContainer(AppRootStackNavigator)
+
+  export default App

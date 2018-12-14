@@ -6,7 +6,7 @@ import React, {Component} from 'react';
 import { StyleSheet, Alert, BackAndroid, Platform, StatusBar, Text,  TouchableOpacity, KeyboardAvoidingView, ToastAndroid, BackHandler, View, Image} from 'react-native';
 import Input from './components/input'
 import storage from './gStorage'
-import myFetch from './myFetch'
+import MyFetch from './myFetch'
 
 export default class Login extends Component{
 
@@ -77,7 +77,7 @@ export default class Login extends Component{
 
     loginFetch(account,password){
         const {navigate} = this.props.navigation;
-        myFetch.postString(
+        MyFetch.postString(
             '/ajaxUser.do?method=Login',
             `username=${account}&password=${password}`,
             (response) => {
@@ -91,7 +91,7 @@ export default class Login extends Component{
                         },
                     });
         
-                    navigate('List')
+                    navigate('Menu')
                 } else {
                     Alert.alert(
                         '提示',
