@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
-import { View, Text,StatusBar,NativeModules, TouchableWithoutFeedback,Platform, Image, TouchableOpacity, Modal, StyleSheet } from 'react-native'
+import { View, Text,StatusBar,NativeModules,BackHandler, TouchableWithoutFeedback,Platform, Image, TouchableOpacity, Modal, StyleSheet } from 'react-native'
 import { ifIphoneX } from 'react-native-iphone-x-helper'
 import storage from '../gStorage';
+import MyFetch from '../myFetch';
 
 const { StatusBarManager } = NativeModules;
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBarManager.HEIGHT;
@@ -17,6 +18,15 @@ export default class MyHeader extends Component {
     // 广告页隐藏状态栏
     if (Platform.OS === 'android') {
       StatusBar.setTranslucent(true)// 仅android
+    }
+    if(this.props.leftBtn === 'back'){
+      BackHandler.addEventListener('hardwareBackPress', this.returnFun.bind(this));
+    }
+  }
+
+  componentWillUnmount() {
+    if(this.props.leftBtn === 'back'){
+      BackHandler.removeEventListener('hardwareBackPress', this.returnFun.bind(this));
     }
   }
 
@@ -57,25 +67,32 @@ export default class MyHeader extends Component {
 
   goLogin(){
     const { navigate } = this.props.navigation; 
-    storage.remove({
-              key:'user'
-            });
-    navigate('Login')
-        // MyFetch.get(
-        //     '/applogout',
-        //     '',
-        //     res => {
-        //       storage.remove({
-        //         key:'user'
-        //       });
-        //       navigate('Login')
-        //     },
-        //     err => {
-        //       Alert.alert('登录发生错误：', err.message, [
-        //         { text: '确定' }
-        //       ])
-        //     }
-        //   )
+    MyFetch.getString(
+        '/ajaxUser.do?method=OffLine',
+        {},
+        (response) => {
+            console.log(response);
+            if (response['_bodyText'] === 'ok') {
+              storage.remove({
+                key:'user'
+              });
+              navigate('Login')
+            } else {
+                Alert.alert(
+                    '提示',
+                    '退出错误',
+                );
+                navigate('Login')
+            }
+        },
+        err => {
+            Alert.alert(
+                '提示',
+                '网络连接中断',
+            );
+            console.log(err);
+        }
+    );
   }
 
   render () {

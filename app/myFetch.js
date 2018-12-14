@@ -71,8 +71,31 @@ export default class MyFetch {
       })
       .then(response => response.json())
       .then(responseJSON => {
-        handleJson(responseJSON, callback, ecallback)
+        callback(responseJSON)
       })
+      .catch(err => alert(err + ''))
+  }
+  
+  static getString (url, params, callback, ecallback) {
+    if (params) {
+      let paramsArray = []
+      // 拼接参数
+      Object
+        .keys(params)
+        .forEach(key => paramsArray.push(key + '=' + params[key]))
+      if (url.search(/\?/) === -1) {
+        url += '?' + paramsArray.join('&')
+      } else {
+        url += '&' + paramsArray.join('&')
+      }
+      console.log(url)
+    }
+    // fetch请求
+    fetch(this.rootUrl + url, { 
+        credentials: 'include',
+        method: 'GET'
+      })
+      .then(response => callback(response))
       .catch(err => alert(err + ''))
   }
   /**
@@ -101,8 +124,24 @@ export default class MyFetch {
         return response.json();
     })
       .then(responseJSON => {
-        handleJson(responseJSON, callback, ecallback)
+        callback(responseJSON)
       })
+      .catch(err => alert(err + ''))
+  }
+
+  static postString(url, body, callback, ecallback) {
+    // fetch请求
+    fetch(this.rootUrl + url, {
+      credentials: 'include',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: body
+    })
+      .then(response => {
+        callback(response)
+    })
       .catch(err => alert(err + ''))
   }
 }

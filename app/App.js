@@ -6,6 +6,7 @@ import Login from './login'
 import List from './list'
 import Detali from './detail'
 import Menu from './menu'
+import Webview from './webView'
 
 
 // ignore remote debugger warning
@@ -45,10 +46,13 @@ const AppRootStackNavigator = createStackNavigator({
     },
     Menu:{
       screen:Menu
+    },
+    Webview:{
+      screen:Webview
     }
   },
   {
-    initialRouteName: 'Menu',
+    initialRouteName: 'Login',
     headerMode: 'none',
   });
 

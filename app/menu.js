@@ -13,19 +13,20 @@ export default class Menu extends Component {
     constructor(props){
         super(props)
         this.state={
-            type:false,
-            mainHeight:new Animated.Value(myPt*120),
-            itemImageTop:new Animated.Value(myPt*10),
-            mainItemWidth:new Animated.Value(myPt*60),
+            type:true,
+            mainHeight:new Animated.Value(myPt*344),
+            itemImageTop:new Animated.Value(myPt*20),
+            mainItemWidth:new Animated.Value(myPt*103),
             dataSource: [{key:'a'},{key:'b'},{key:'c'}],
             loaded: false,
-            index:1, //页数
+            bottomType:1,
             hasNext:true,
             Current:new Animated.Value(0),
             colorArr:['#C05959','#757575','#5984C0','#68E180']
         }
     }
     componentWillMount() {
+        this._onload()
         this._panResponder = PanResponder.create({
           // 要求成为响应者：
           onStartShouldSetPanResponder: (evt, gestureState) => true,
@@ -99,7 +100,7 @@ export default class Menu extends Component {
       }
     componentDidMount(){
         //this._onload()
-        this.changeMain(true)
+        //this.changeMain(true)
         BackHandler.addEventListener('hardwareBackPress', this.onBackAndroid);
     }
     componentWillUnmount() {
@@ -115,17 +116,14 @@ export default class Menu extends Component {
         return true;
         
     };
-    refreshing(type){
-        if(type == undefined){
-            type = this.state.type
-        }
+    refreshing(){
         let _this = this
         this.myPromise(true).then(function(){
             _this.setState({
                 loaded:true,
                 index:1,
                 hasNext:true,
-                dataSource:[{key:'1'},{key:'2'},{key:'3'}]
+                dataSource:[]
             })
         }).then(function(){
             _this._onload();
@@ -134,36 +132,28 @@ export default class Menu extends Component {
 
     _onload(){
         const {index,type} = this.state
+        this.getTz();
     }
 
-    getTodo(index){
-        if(!this.state.hasNext){
-            return ;
-        }
-        else{
+    getTz(index){
             MyFetch.get(
-                '/snaker/task/app',
-                {page:index,pageSize:5},
+                'ajaxNotice.do?method=GetIndex',
+                {de:2,ect:Math.random()},
                 res => {
                     console.log(res)
                     let arr=[]
-                    for(let i=0;i<res.data.result.length;i++){
+                    for(let i=0;i<res.rows.length;i++){
                         let item = {}
-                        item.key = res.data.result[i].taskVariableMap.id+'';
-                        item.title = res.data.result[i].processName;
-                        item.taskName = res.data.result[i].taskName;
-                        item.creator = res.data.result[i].creator;
-                        item.day = res.data.result[i].taskCreateTime.substring(8,10);
-                        item.month = res.data.result[i].taskCreateTime.substring(5,7);
-                        item.year = res.data.result[i].taskCreateTime.substring(0,4)
+                        item.key = res.rows[i].id;
+                        item.title = res.rows[i].data[1];
+                        item.day = res.rows[i].data[2].substring(0,10);
                         arr.push(item)
 
                     }
                     this.setState({
-                        dataSource:this.state.dataSource.concat(arr),
+                        dataSource:arr,
                         loaded:false,
-                        index:index+1,
-                        hasNext:res.data.hasNext
+                        hasNext:false
                     })
                     console.log(this.state.dataSource)
                 },
@@ -173,19 +163,18 @@ export default class Menu extends Component {
                 ])
                 }
             )
-            }
-        
     }
 
     renderRow(item,index){
-            return <TouchableOpacity style={styles.item} onPress={()=>alert('选择啦')}>
+        const { navigate } = this.props.navigation; 
+            return <TouchableOpacity style={styles.item} onPress={()=>navigate('Webview',{id:item.key,type:this.state.bottomType})}>
                         <View style={styles.item1First}>
                         </View>
                         <View style={[styles.item2First,{}]}>
-                            <Text style={{textAlign:"left",width:myPt*222,borderRightColor:"#7082A6",borderRightWidth:1,color:"#9EA0B1",fontWeight:'600'}}>2018年上半年投资计划</Text>
+                            <Text style={{textAlign:"left",paddingRight:10,width:myPt*222,borderRightColor:"#7082A6",borderRightWidth:1,color:"#9EA0B1",fontWeight:'600'}}>{item.title}</Text>
                         </View>
                         <View style={[styles.item3First,{flex:1}]}>
-                            <Text style={{width:'100%',textAlign:'center',fontSize:9}}>2018-10-15</Text>
+                            <Text style={{width:'100%',textAlign:'center',fontSize:9}}>{item.day}</Text>
                         </View>
                 </TouchableOpacity>
     }
@@ -329,9 +318,9 @@ export default class Menu extends Component {
                         refreshing={this.state.loaded}
                         initialNumToRender={2}
                         renderItem={({item,index}) => this.renderRow(item,index)}
-                        onEndReached={this._onload.bind(this)
-                        }
-                        onEndReachedThreshold={0.3}
+                        // onEndReached={this._onload.bind(this)
+                        // }
+                        // onEndReachedThreshold={0.3}
                         style={[styles.list,]}
                         />
                 </View>
@@ -373,6 +362,7 @@ const styles = StyleSheet.create({
         flexWrap:'wrap',
         alignItems:'flex-start',
         justifyContent:'center',
+        overflow:'hidden'
     },
     mainItem:{
         flexDirection:'column',
