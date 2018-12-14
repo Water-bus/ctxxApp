@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { Text, TouchableOpacity,ScrollView,Dimensions,StatusBar, StyleSheet, View, Image} from 'react-native';
+import { Text, TouchableOpacity,Linking,FlatList,ScrollView,Dimensions,StatusBar, StyleSheet, View, Image} from 'react-native';
 import HTMLView from 'react-native-htmlview';
 import Myheader from './components/Myheader'
 import MyFetch from './myFetch';
@@ -24,7 +24,7 @@ export default class Webview extends Component{
 
     componentWillMount(){
         const {id,type} = this.props.navigation.state.params
-        if(type==1){
+        if(type==2 || type ==1){
             this.getContent(id)
         }
     }
@@ -53,15 +53,20 @@ export default class Webview extends Component{
     }
     getFold(id){
         MyFetch.get(
-            'ajaxNotice.do?method=GetNotice2',
-            {NoticeID:id,ect:Math.random()},
+            'ajaxEntfileRecord.do?method=init_all',
+            {id:id,ect:Math.random()},
             res => {
                 console.log(res)
+                let arr=[]
+                for(let i=0;i<res.length;i++){
+                    let item = {}
+                    item.key = res[i].def1;
+                    item.title = res[i].displayname;
+                    item.size = res[i].file_size;
+                    arr.push(item)
+                }
                 this.setState({
-                    title:res.fldzcbt,
-                    htmlContent:res.fldtznr,
-                    recorder:res.recorder,
-                    time:res.fldfbsj
+                    dataSource:arr
                 })
             },
             err => {
@@ -70,6 +75,19 @@ export default class Webview extends Component{
             ])
             }
         )
+    }
+
+    renderRow(item,index){
+        return <TouchableOpacity style={styles.item} onPress={()=> Linking.openURL(MyFetch.rootUrl+item.key)}>
+                        <View style={styles.item1First}>
+                        </View>
+                        <View style={[styles.item2First,{}]}>
+                            <Text style={{textAlign:"left",paddingRight:10,width:myPt*222,borderRightColor:"#7082A6",borderRightWidth:1,color:"#9EA0B1",fontWeight:'600'}}>{item.title}</Text>
+                        </View>
+                        <View style={[styles.item3First,{flex:1}]}>
+                            <Text style={{width:'100%',textAlign:'center',fontSize:12}}>{item.size}</Text>
+                        </View>
+                </TouchableOpacity>
     }
 
     render() {
@@ -90,18 +108,15 @@ export default class Webview extends Component{
                     value={htmlContent}
                 />
             </ScrollView>
-            <View style={{width:myPt*262,height:myPt*150,marginTop:20}}>
+            <View style={{width:myPt*355,height:myPt*150,marginTop:20}}>
                     <FlatList
                         data={this.state.dataSource}
-                        ListFooterComponent={this._footer.bind(this)}
-                        onRefresh={this.refreshing.bind(this)}
-                        refreshing={this.state.loaded}
-                        initialNumToRender={2}
+                        refreshing={false}
                         renderItem={({item,index}) => this.renderRow(item,index)}
                         // onEndReached={this._onload.bind(this)
                         // }
                         // onEndReachedThreshold={0.3}
-                        style={[styles.list,]}
+                        style={[{width:myPt*355,height:myPt*150,marginTop:20}]}
                     />
             </View>
           </View> 
@@ -133,6 +148,33 @@ const styles = StyleSheet.create({
         alignItems:'flex-start',
         justifyContent:'flex-start',
         paddingLeft:myPt*28
-    }
+    },
+    item:{
+        width:myPt*355,
+        height:myPt*60,
+        backgroundColor:"#fff",
+        borderRadius:5,
+        flexDirection:'row',
+        flexWrap:'nowrap',
+        justifyContent:'flex-start',
+        alignItems:'center',
+        textAlign:'center',
+        marginBottom:myPt*5,
+        borderRadius:10,
+        borderWidth:1,
+        borderColor:'#aaa',
+    },
+    item1First:{
+        backgroundColor:"#7082A6",
+        width:myPt*10,height:myPt*10,
+        borderRadius:myPt*5,
+        marginLeft:20*myPt,
+        marginRight:10*myPt
+    },
+    item2First:{
+    },
+    item3First:{
+
+    },
   });
 

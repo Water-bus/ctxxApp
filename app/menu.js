@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { StyleSheet,PanResponder,Animated,FlatList,TouchableOpacity,ToastAndroid,TouchableWithoutFeedback, Platform,ImageBackground,Dimensions, BackHandler, StatusBar,Text, View, Image} from 'react-native';
+import { StyleSheet,PanResponder,Animated,Linking,FlatList,TouchableOpacity,ToastAndroid,TouchableWithoutFeedback, Platform,ImageBackground,Dimensions, BackHandler, StatusBar,Text, View, Image} from 'react-native';
 import storage from './gStorage';
 import MyFetch from './myFetch';
 import Myheader from './components/Myheader'
@@ -15,11 +15,11 @@ export default class Menu extends Component {
         this.state={
             type:true,
             mainHeight:new Animated.Value(myPt*344),
-            itemImageTop:new Animated.Value(myPt*20),
+            itemImageTop:new Animated.Value(myPt*18),
             mainItemWidth:new Animated.Value(myPt*103),
             dataSource: [{key:'a'},{key:'b'},{key:'c'}],
             loaded: false,
-            bottomType:1,
+            bottomType:2,
             hasNext:true,
             Current:new Animated.Value(0),
             colorArr:['#C05959','#757575','#5984C0','#68E180']
@@ -30,7 +30,7 @@ export default class Menu extends Component {
         this._panResponder = PanResponder.create({
           // 要求成为响应者：
           onStartShouldSetPanResponder: (evt, gestureState) => true,
-          onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
+          onStartShouldSetPanResponderCapture: (evt, gestureState) => false,
           onMoveShouldSetPanResponder: (evt, gestureState) => true,
           onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
     
@@ -50,20 +50,20 @@ export default class Menu extends Component {
             if(gestureState.dy>0 && gestureState.dy<100){
                 this.setState({
                     mainHeight:new Animated.Value(myPt*120+224*gestureState.dy/100),
-                    itemImageTop:new Animated.Value(myPt*10+10*gestureState.dy/100),
+                    itemImageTop:new Animated.Value(myPt*10+8*gestureState.dy/100),
                     mainItemWidth:new Animated.Value(myPt*60+43*gestureState.dy/100),
                 })
             }else if(gestureState.dy<0 && gestureState.dy>-100){
                 this.setState({
                     mainHeight:new Animated.Value(myPt*344+224*gestureState.dy/100),
-                    itemImageTop:new Animated.Value(myPt*20+10*gestureState.dy/100),
+                    itemImageTop:new Animated.Value(myPt*18+10*gestureState.dy/100),
                     mainItemWidth:new Animated.Value(myPt*103+43*gestureState.dy/100),
                 })
             }else if(gestureState.dy>=100){
                 this.setState({
                     type:true,
                     mainHeight:new Animated.Value(myPt*344),
-                    itemImageTop:new Animated.Value(myPt*20),
+                    itemImageTop:new Animated.Value(myPt*18),
                     mainItemWidth:new Animated.Value(myPt*103),
                 })
             }else if(gestureState.dy<=-100){
@@ -116,14 +116,15 @@ export default class Menu extends Component {
         return true;
         
     };
-    refreshing(){
+    refreshing(index){
         let _this = this
         this.myPromise(true).then(function(){
             _this.setState({
                 loaded:true,
                 index:1,
                 hasNext:true,
-                dataSource:[]
+                dataSource:[],
+                bottomType:index
             })
         }).then(function(){
             _this._onload();
@@ -131,14 +132,20 @@ export default class Menu extends Component {
     }
 
     _onload(){
-        const {index,type} = this.state
-        this.getTz();
+        const {bottomType} = this.state
+        if(bottomType == 2){
+            this.getTz(2);
+        } else if(bottomType == 1){
+            this.getTz(1);
+        } else {
+            this.getDownload(3)
+        }
     }
 
     getTz(index){
             MyFetch.get(
                 'ajaxNotice.do?method=GetIndex',
-                {de:2,ect:Math.random()},
+                {de:index,ect:Math.random()},
                 res => {
                     console.log(res)
                     let arr=[]
@@ -148,12 +155,12 @@ export default class Menu extends Component {
                         item.title = res.rows[i].data[1];
                         item.day = res.rows[i].data[2].substring(0,10);
                         arr.push(item)
-
                     }
                     this.setState({
                         dataSource:arr,
                         loaded:false,
-                        hasNext:false
+                        hasNext:false,
+                        bottomType:index
                     })
                     console.log(this.state.dataSource)
                 },
@@ -165,9 +172,53 @@ export default class Menu extends Component {
             )
     }
 
-    renderRow(item,index){
+    getDownload(index){
+        MyFetch.get(
+            'ajaxEntfileRecord.do?method=InitFirst2&ent_id=information',
+            {ect:Math.random()},
+            res => {
+                console.log(res)
+                let arr=[]
+                for(let i=0;i<res.length;i++){
+                    let item = {}
+                    item.key = res[i].def1;
+                    item.title = res[i].displayname;
+                    item.day = res[i].file_size
+                    arr.push(item)
+                }
+                this.setState({
+                    dataSource:arr,
+                    loaded:false,
+                    hasNext:false,
+                    bottomType:index
+                })
+                console.log(this.state.dataSource)
+            },
+            err => {
+            Alert.alert('登录发生错误：', err.message, [
+                { text: '确定' }
+            ])
+            }
+        )
+    }
+
+    godetail(item){
         const { navigate } = this.props.navigation; 
-            return <TouchableOpacity style={styles.item} onPress={()=>navigate('Webview',{id:item.key,type:this.state.bottomType})}>
+        const {bottomType} = this.state
+        if(bottomType ==1 || bottomType == 2){
+            navigate('Webview',{id:item.key,type:bottomType})
+        }else{
+            Linking.openURL(MyFetch.rootUrl+item.key)
+        }
+    }
+
+    goList(index){
+        const { navigate } = this.props.navigation; 
+        navigate('List',{index:index})
+    }
+
+    renderRow(item,index){
+            return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item)}>
                         <View style={styles.item1First}>
                         </View>
                         <View style={[styles.item2First,{}]}>
@@ -196,7 +247,7 @@ export default class Menu extends Component {
                   duration: 500,
                 }),
                 Animated.timing(this.state.itemImageTop, {
-                    toValue: myPt*20,
+                    toValue: myPt*18,
                     duration: 500,
                 }),
                 Animated.timing(this.state.mainItemWidth, {
@@ -238,75 +289,75 @@ export default class Menu extends Component {
                 <Myheader leftBtn="exit" rightBtn='message' navigation={this.props.navigation} title="功能列表"></Myheader>
                 
                 <Animated.View {...this._panResponder.panHandlers} style={[styles.main,{height:this.state.mainHeight}]}> 
-                    <TouchableWithoutFeedback>
+                    <TouchableOpacity onPress={()=>this.goList(1)}>
                         <Animated.View style={[styles.mainItem,{width:this.state.mainItemWidth}]}>
                                 <Animated.Image source={require('./image/mainItem/1.png')} style={[styles.mainItemImage,{marginTop:this.state.itemImageTop}]}  resizeMode='contain' />
                                 {this.state.type?<Text style={styles.mainItemText}>投委会项目跟踪</Text>:<View></View>}
                         </Animated.View>
-                    </TouchableWithoutFeedback>
-                    <TouchableWithoutFeedback>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={()=>this.goList(2)}>
                         <Animated.View style={[styles.mainItem,{width:this.state.mainItemWidth}]}>
                                 <Animated.Image source={require('./image/mainItem/2.png')} style={[styles.mainItemImage,{marginTop:this.state.itemImageTop}]}  resizeMode='contain' />
                                 {this.state.type?<Text style={styles.mainItemText}>PPP项目</Text>:<View></View>}
                         </Animated.View>
-                    </TouchableWithoutFeedback>
-                    <TouchableWithoutFeedback>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={()=>this.goList(3)}>
                         <Animated.View style={[styles.mainItem,{width:this.state.mainItemWidth}]}>
                                 <Animated.Image source={require('./image/mainItem/3.png')} style={[styles.mainItemImage,{marginTop:this.state.itemImageTop}]}  resizeMode='contain' />
                                 {this.state.type?<Text style={styles.mainItemText}>类金融固收</Text>:<View></View>}
                         </Animated.View>
-                    </TouchableWithoutFeedback>
-                    <TouchableWithoutFeedback>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={()=>this.goList(4)}>
                         <Animated.View style={[styles.mainItem,{width:this.state.mainItemWidth}]}>
                                 <Animated.Image source={require('./image/mainItem/4.png')} style={[styles.mainItemImage,{marginTop:this.state.itemImageTop}]}  resizeMode='contain' />
                                 {this.state.type?<Text style={styles.mainItemText}>类金融定增</Text>:<View></View>}
                         </Animated.View>
-                    </TouchableWithoutFeedback>
-                    <TouchableWithoutFeedback>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={()=>this.goList(5)}>
                         <Animated.View style={[styles.mainItem,{width:this.state.mainItemWidth}]}>
                                 <Animated.Image source={require('./image/mainItem/5.png')} style={[styles.mainItemImage,{marginTop:this.state.itemImageTop}]}  resizeMode='contain' />
                                 {this.state.type?<Text style={styles.mainItemText}>类金融并购</Text>:<View></View>}
                         </Animated.View>
-                    </TouchableWithoutFeedback>
-                    <TouchableWithoutFeedback>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={()=>this.goList(6)}>
                         <Animated.View style={[styles.mainItem,{width:this.state.mainItemWidth}]}>
                                 <Animated.Image source={require('./image/mainItem/6.png')} style={[styles.mainItemImage,{marginTop:this.state.itemImageTop}]}  resizeMode='contain' />
                                 {this.state.type?<Text style={styles.mainItemText}>类金融保理</Text>:<View></View>}
                         </Animated.View>
-                    </TouchableWithoutFeedback>
-                    <TouchableWithoutFeedback>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={()=>this.goList(7)}>
                         <Animated.View style={[styles.mainItem,{width:this.state.mainItemWidth}]}>
                                 <Animated.Image source={require('./image/mainItem/7.png')} style={[styles.mainItemImage,{marginTop:this.state.itemImageTop}]}  resizeMode='contain' />
                                 {this.state.type?<Text style={styles.mainItemText}>类金融PE</Text>:<View></View>}
                         </Animated.View>
-                    </TouchableWithoutFeedback>
-                    <TouchableWithoutFeedback>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={()=>this.goList(8)}>
                         <Animated.View style={[styles.mainItem,{width:this.state.mainItemWidth}]}>
                                 <Animated.Image source={require('./image/mainItem/8.png')} style={[styles.mainItemImage,{marginTop:this.state.itemImageTop}]}  resizeMode='contain' />
                                 {this.state.type?<Text style={styles.mainItemText}>产业化基金</Text>:<View></View>}
                         </Animated.View>
-                    </TouchableWithoutFeedback>
-                    <TouchableWithoutFeedback>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={()=>this.goList(9)}>
                         <Animated.View style={[styles.mainItem,{width:this.state.mainItemWidth}]}>
                                 <Animated.Image source={require('./image/mainItem/9.png')} style={[styles.mainItemImage,{marginTop:this.state.itemImageTop}]}  resizeMode='contain' />
-                                {this.state.type?<Text style={styles.mainItemText}>并购、股权投资</Text>:<View></View>}
+                                {this.state.type?<Text style={styles.mainItemText}>房地产类（并购、股权投资）</Text>:<View></View>}
                         </Animated.View>
-                    </TouchableWithoutFeedback>
-                    <TouchableWithoutFeedback>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={()=>this.goList(10)}>
                         <Animated.View style={[styles.mainItem,{width:this.state.mainItemWidth}]}>
                                 <Animated.Image source={require('./image/mainItem/10.png')} style={[styles.mainItemImage,{marginTop:this.state.itemImageTop}]}  resizeMode='contain' />
-                                {this.state.type?<Text style={styles.mainItemText}>招拍挂</Text>:<View></View>}
+                                {this.state.type?<Text style={styles.mainItemText}>房地产（招拍挂）</Text>:<View></View>}
                         </Animated.View>
-                    </TouchableWithoutFeedback>
+                    </TouchableOpacity>
                 </Animated.View>
                 <View style={styles.centerView}>
-                    <TouchableWithoutFeedback onPress={() => alert('1')} style={{}}>
+                    <TouchableWithoutFeedback onPress={() => this.refreshing(2)} style={{}}>
                         <Text style={{width:'33%',borderRightColor:'#7082A6',borderRightWidth:1,fontSize:12,textAlign:'center',color:'#9E9E9E'}}>投资动态</Text>
                     </TouchableWithoutFeedback>
-                    <TouchableWithoutFeedback onPress={() => alert('2')} style={{}}>
+                    <TouchableWithoutFeedback onPress={() => this.refreshing(1)} style={{}}>
                         <Text style={{width:'33%',borderRightColor:'#7082A6',borderRightWidth:1,fontSize:12,textAlign:'center',color:'#9E9E9E'}}>投资分析</Text>
                     </TouchableWithoutFeedback>
-                    <TouchableWithoutFeedback onPress={() => alert('3')} style={{}}>
+                    <TouchableWithoutFeedback onPress={() => this.refreshing(3)} style={{}}>
                         <Text style={{width:'33%',fontSize:12,textAlign:'center',color:'#9E9E9E'}}>附件下载</Text>
                     </TouchableWithoutFeedback>
                 </View>
