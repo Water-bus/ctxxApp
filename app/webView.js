@@ -103,12 +103,12 @@ export default class Webview extends Component{
                 <Text style={{color:'#fff',maxHeight:40,overflow:'hidden',fontSize:10,marginBottom:8,textAlign:'left'}}>推送人：{this.state.recorder}</Text>
                 <Text style={{color:'#fff',maxHeight:40,overflow:'hidden',fontSize:10,textAlign:'left'}}>推送时间：{this.state.time}</Text>
             </View>
-            <ScrollView style={{flex:1,width:myPt*262}}>
+            <ScrollView style={{flex:1,width:myPt*355}}>
                 <HTMLView
                     value={htmlContent}
                 />
             </ScrollView>
-            <View style={{width:myPt*355,height:myPt*150,marginTop:20}}>
+            {this.state.dataSource.length>0?<View style={{width:myPt*355,height:myPt*150,marginTop:20}}>
                     <FlatList
                         data={this.state.dataSource}
                         refreshing={false}
@@ -118,7 +118,7 @@ export default class Webview extends Component{
                         // onEndReachedThreshold={0.3}
                         style={[{width:myPt*355,height:myPt*150,marginTop:20}]}
                     />
-            </View>
+            </View>:<View></View>}
           </View> 
         );
     }

@@ -334,6 +334,11 @@ export default class List extends Component{
         })
     }
 
+    godetail(id){
+        const { navigate } = this.props.navigation; 
+        navigate('Detali',{id:id,index:this.state.index})
+    }
+
     renderRow(item,index){
         if(this.state.index==1){
             return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item.key)}>
@@ -355,10 +360,6 @@ export default class List extends Component{
                         <View style={styles.item1First}>
                             <Text style={styles.itemlabel}>董事会通过时间</Text>
                             <Text style={styles.itemContent}>{item.allowTime}</Text>
-                        </View>
-                        <View style={styles.item1First}>
-                            <Text style={styles.itemlabel}>最新进度</Text>
-                            <Text style={styles.itemContent}>{item.progress}</Text>
                         </View>
                 </TouchableOpacity>
         }

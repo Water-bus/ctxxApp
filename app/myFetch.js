@@ -39,7 +39,7 @@ const handleJson = (json, callback, ecallback) => {
 export default class MyFetch {
   // static rootUrl = 'http://ipapp.dev.hzjuxiu.com:40004' // es6不支持静态属性声明语法
   // static rootUrl = 'http://192.168.1.80:8080'
-  static rootUrl = 'http://192.168.1.91:8097/CityInverst/'
+  static rootUrl = 'http://115.238.38.242:8090/CityInverst/'
   /**
    * 封装get
    * mcq
@@ -73,7 +73,7 @@ export default class MyFetch {
       .then(responseJSON => {
         callback(responseJSON)
       })
-      .catch(err => alert(err + ''))
+      .catch(err => alert('系统错误，清稍后尝试'))
   }
   
   static getString (url, params, callback, ecallback) {
