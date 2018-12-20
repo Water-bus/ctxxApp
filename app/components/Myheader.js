@@ -1,8 +1,11 @@
 import React, { Component } from 'react'
-import { View, Text,StatusBar,NativeModules,BackHandler, TouchableWithoutFeedback,Platform, Image, TouchableOpacity, Modal, StyleSheet } from 'react-native'
+import { View, Text,StatusBar,Dimensions,NativeModules,BackHandler,TextInput, TouchableWithoutFeedback,Platform, Image, TouchableOpacity, Modal, StyleSheet } from 'react-native'
 import { ifIphoneX } from 'react-native-iphone-x-helper'
 import storage from '../gStorage';
 import MyFetch from '../myFetch';
+
+var {height,width} =  Dimensions.get('window');
+let myPt = width/375;
 
 const { StatusBarManager } = NativeModules;
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBarManager.HEIGHT;
@@ -11,7 +14,8 @@ export default class MyHeader extends Component {
     constructor(props) {
       super(props);
       this.state = {
-        isModal:false
+        isModal:false,
+        isSearch:true
        };
     }
   componentDidMount () {
@@ -41,10 +45,16 @@ export default class MyHeader extends Component {
     })
   }
 
+  Search(){
+    this.setState({
+      isSearch:!this.state.isSearch
+    })
+  }
+
   renderRightBtn () {
-    if (this.props.rightBtn=="exit") {
-      return  (<TouchableOpacity style={styles.btnView} onPress={() => this.goLogin()}>
-            <Image source={require('../image/Exit.png')} resizeMode='contain' style={styles.leftBtn} />
+    if (this.props.rightBtn=="search") {
+      return  (<TouchableOpacity style={styles.btnView} onPress={() => this.Search()}>
+            <Image source={require('../image/search.png')} resizeMode='contain' style={styles.leftBtn} />
         </TouchableOpacity>)
     } else {
       return <View style={styles.btnView}></View>
@@ -101,7 +111,19 @@ export default class MyHeader extends Component {
         <View style={styles.viewBox}>
             {this.renderLeftBtn()}
             <View style={styles.titleView}>
-                <Text style={styles.title}>{this.props.title}</Text>
+                {this.state.isSearch?<Text style={styles.title}>{this.props.title}</Text>:
+                <TextInput style={[styles.inputStyle]}
+                           {...this.props}
+                           placeholder={'请输入搜索内容'}
+                           autoFocus={true}
+                           underlineColorAndroid='transparent'
+                           placeholderTextColor='#777'
+                           autoCapitalize='none'
+                           autoCorrect={false}
+                           onChangeText={text => this.props.gosearch(text)}
+                >
+                </TextInput>
+              }
             </View>
             {this.renderRightBtn()}
         </View>
@@ -113,9 +135,9 @@ export default class MyHeader extends Component {
 const styles = StyleSheet.create({
   rootView: {
     ...ifIphoneX({
-        height: 84
+        height: myPt*64
     }, {
-        height: 44
+        height: myPt*44
     }),
     backgroundColor: 'transparent',
     borderBottomWidth: 0,
@@ -131,27 +153,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   btnView: {
-    height: 50,
+    height: myPt*50,
     flex: 1,
     justifyContent: 'center',
     alignItems:'center',
   },
   titleView: {
     flex: 7,
-    height:50,
+    height:myPt*50,
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     textAlign: 'center'
   },
   title: {
-    fontSize: 16,
-    lineHeight:50,
+    fontSize: myPt*16,
+    lineHeight:myPt*50,
     fontWeight:"600",
     color: '#fff',
-    height: 50,
+    height: myPt*50,
+  },
+  inputStyle:{
+    backgroundColor:'#fff',
+    width:'80%',
+    height:myPt*30,
+    fontSize:myPt*12,
+    padding:0,
+    textAlign:'center'
+
   },
   leftBtn: {
-      height: 17
+      height: myPt*17
   },
   modal:{
     flex:1,

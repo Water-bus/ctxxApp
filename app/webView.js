@@ -96,16 +96,17 @@ export default class Webview extends Component{
 
         return (
           <View style={styles.container}>
-            <Image source={require('./image/detailBackground.png')}  resizeMode='contain' style={[styles.backgroundTop,{height:myPt*170}]} /> 
+            <Image source={require('./image/detailBackground.png')}  resizeMode='contain' style={[styles.backgroundTop,{height:myPt*170.75}]} /> 
             <Myheader leftBtn="back" navigation={this.props.navigation} title="消息详情"></Myheader>
             <View style={styles.title}>
-                <Text style={{color:'#fff',maxHeight:40,overflow:'hidden',fontSize:16,marginBottom:8,textAlign:'left'}}>{this.state.title}</Text>
-                <Text style={{color:'#fff',maxHeight:40,overflow:'hidden',fontSize:10,marginBottom:8,textAlign:'left'}}>推送人：{this.state.recorder}</Text>
-                <Text style={{color:'#fff',maxHeight:40,overflow:'hidden',fontSize:10,textAlign:'left'}}>推送时间：{this.state.time}</Text>
+                <Text style={{color:'#fff',maxHeight:myPt*40,overflow:'hidden',fontSize:myPt*16,marginBottom:8,textAlign:'left'}}>{this.state.title}</Text>
+                <Text style={{color:'#fff',maxHeight:myPt*20,overflow:'hidden',fontSize:myPt*10,marginBottom:8,textAlign:'left'}}>推送人：{this.state.recorder}</Text>
+                <Text style={{color:'#fff',maxHeight:myPt*20,overflow:'hidden',fontSize:myPt*10,textAlign:'left'}}>推送时间：{this.state.time}</Text>
             </View>
-            <ScrollView style={{flex:1,width:myPt*355}}>
+            <ScrollView style={{flex:1,width:myPt*355,marginTop:20}}>
                 <HTMLView
                     value={htmlContent}
+                    style={{paddingTop:myPt*20}}
                 />
             </ScrollView>
             {this.state.dataSource.length>0?<View style={{width:myPt*355,height:myPt*150,marginTop:20}}>
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
     },
     backgroundTop:{
         width:'100%',
-        top:0,
+        top:-1,
         position:'absolute',
     },
     title:{
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
         flexWrap:'wrap',
         alignItems:'flex-start',
         justifyContent:'flex-start',
-        paddingLeft:myPt*28
+        paddingLeft:myPt*28,
     },
     item:{
         width:myPt*355,

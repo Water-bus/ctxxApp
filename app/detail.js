@@ -63,6 +63,9 @@ export default class Detail extends Component{
         }else if(index == 10){
             url = 'ajaxEstateAuction'
             title = '房地产（招拍挂）'
+        }else if(index == 11){
+            url = 'ajaxFinanceLease'
+            title = '融资租赁'
         }
         this.setState({
             title:title+'详情'
@@ -97,6 +100,8 @@ export default class Detail extends Component{
                     res.xxxx = res.projectName
                 }else if(this.state.index==10){
                     res.xxxx = res.projectName
+                }else if(this.state.index==11){
+                    res.xxxx = res.projectName
                 }
                 this.setState({
                     dataSource:res,
@@ -115,7 +120,7 @@ export default class Detail extends Component{
         const params = this.props.navigation.state.params
         return (
                 <View style={styles.container}>
-                    <Image source={require('./image/detailBackground.png')}  resizeMode='contain' style={[styles.backgroundTop,{height:myPt*170}]} /> 
+                    <Image source={require('./image/detailBackground.png')}  resizeMode='contain' style={[styles.backgroundTop,{height:myPt*171}]} /> 
                     <Myheader leftBtn="back" navigation={this.props.navigation} title={this.state.title}></Myheader>
                     <View style={styles.title}>
                         <Text style={{color:'#fff',maxHeight:myPt*100,overflow:'hidden',fontSize:16,marginBottom:8,textAlign:'left'}}>{item.xxxx}</Text>
@@ -370,10 +375,6 @@ export default class Detail extends Component{
                                     <Text style={styles.itemContent}>{item.currentPrice}（元/股）</Text>
                                 </View>
                                 <View style={styles.item1First}>
-                                    <Text style={styles.itemlabel}>账面浮赢</Text>
-                                    <Text style={styles.itemContent}>{item.bookFloats}（万元）</Text>
-                                </View>
-                                <View style={styles.item1First}>
                                     <Text style={styles.itemlabel}>退出收益</Text>
                                     <Text style={styles.itemContent}>{item.withdrawalIncome}（万元）</Text>
                                 </View><View style={styles.item1First}>
@@ -428,6 +429,18 @@ export default class Detail extends Component{
                                 <View style={styles.item1First}>
                                     <Text style={styles.itemlabel}>退出收益</Text>
                                     <Text style={styles.itemContent}>{item.withdrawalIncome}（万元）</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>目前持股</Text>
+                                    <Text style={styles.itemContent}>{item.currentShareholding}（万股）</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>当前股价</Text>
+                                    <Text style={styles.itemContent}>{item.currentPrice}（元/股）</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>账面浮赢</Text>
+                                    <Text style={styles.itemContent}>{item.bookFloats}（万元）</Text>
                                 </View>
                                 <View style={styles.item1First}>
                                     <Text style={styles.itemlabel}>备注</Text>
@@ -873,6 +886,59 @@ export default class Detail extends Component{
                                 </View>
                             </View>
                         </ScrollView>
+            }else if(this.state.index==11){
+                return  <ScrollView>
+                            <View style={styles.item}>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>客户名称</Text>
+                                    <Text style={styles.itemContent}>{item.financialCompany}</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>责任单位</Text>
+                                    <Text style={styles.itemContent}>{item.def1}</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>合同起始日期</Text>
+                                    <Text style={styles.itemContent}>{item.projectFrom}</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>合同结束日期</Text>
+                                    <Text style={styles.itemContent}>{item.projectTo}</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>合同期限</Text>
+                                    <Text style={styles.itemContent}>{item.projectTime}（年）</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>合同金额</Text>
+                                    <Text style={styles.itemContent}>{item.projectPrice}（万元）</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>收款金额</Text>
+                                    <Text style={styles.itemContent}>{item.projectReceipt}（万元）</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>每期应收款</Text>
+                                    <Text style={styles.itemContent}>{item.projectReceiptEvery}（万元）</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>最新收款日期</Text>
+                                    <Text style={styles.itemContent}>{item.projectReceiptDate}</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>当期收款金额</Text>
+                                    <Text style={styles.itemContent}>{item.projectReceiptGet}（万元）</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>已收金额</Text>
+                                    <Text style={styles.itemContent}>{item.projectReceiptSum}（万元）</Text>
+                                </View>
+                                <View style={styles.item1First}>
+                                    <Text style={styles.itemlabel}>待收金额</Text>
+                                    <Text style={styles.itemContent}>{item.projectReceiptWait}（万元）</Text>
+                                </View>
+                            </View>
+                        </ScrollView>
             }
         }
 
@@ -887,7 +953,7 @@ const styles = StyleSheet.create({
     },
     backgroundTop:{
         width:'100%',
-        top:0,
+        top:-1,
         position:'absolute',
     },
     title:{

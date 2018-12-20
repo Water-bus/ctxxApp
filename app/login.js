@@ -6,6 +6,7 @@ import React, {Component} from 'react';
 import { StyleSheet, Alert, BackAndroid, Platform, StatusBar, Text,  TouchableOpacity, KeyboardAvoidingView, ToastAndroid, BackHandler, View, Image} from 'react-native';
 import Input from './components/input'
 import storage from './gStorage'
+import SplashScreen from 'react-native-splash-screen';
 import MyFetch from './myFetch'
 
 export default class Login extends Component{
@@ -23,7 +24,11 @@ export default class Login extends Component{
             StatusBar.setTranslucent(true)
             StatusBar.setBackgroundColor('transparent')// 仅android
         }
-        
+        this.timer = setTimeout(  
+                  () => { 
+              SplashScreen.hide() },  
+                  1000  
+        );  
         BackHandler.addEventListener('hardwareBackPress', this.onBackAndroid);
         const {navigate} = this.props.navigation;
         storage.load({
@@ -55,9 +60,9 @@ export default class Login extends Component{
             }
         })
     }
-    
     componentWillUnmount() {
         BackHandler.removeEventListener('hardwareBackPress', this.onBackAndroid);
+        this.timer && clearTimeout(this.timer); 
     }
     onBackAndroid = () => {
         

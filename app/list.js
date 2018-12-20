@@ -18,7 +18,8 @@ export default class List extends Component{
             index:'',
             dataSource:[],
             hasNext:true,
-            loaded:false
+            loaded:false,
+            searchText:''
          };
     }
 
@@ -65,6 +66,9 @@ export default class List extends Component{
         }else if(index == 10){
             url = 'ajaxEstateAuction'
             title = '房地产（招拍挂）'
+        }else if(index == 11){
+            url = 'ajaxFinanceLease'
+            title = '融资租赁'
         }
         this.setState({
             title:title
@@ -100,6 +104,8 @@ export default class List extends Component{
                     arr = this.index9(res)
                 }else if(index == 10){
                     arr = this.index10(res)
+                }else if(index == 10){
+                    arr = this.index11(res)
                 }
                 this.setState({
                     loaded:false,
@@ -114,21 +120,6 @@ export default class List extends Component{
             }
         )
     }
-    index1(res){
-        let arr =[]
-        for(let i=0;i<res.length;i++){
-            let item = {}
-            item.key = res[i].uuid;
-            item.title = res[i].title;
-            item.no = res[i].no;
-            item.day = res[i].meetingDate.substring(0,10);
-            item.responsibleUnits = res[i].responsibleUnits;
-            item.allowTime = res[i].def3.substring(0,10)
-            item.progress = res[i].projectProgress
-            arr.push(item)
-        }
-        return arr
-    }
 
     index1(res){
         let arr =[]
@@ -137,10 +128,11 @@ export default class List extends Component{
             item.key = res[i].uuid;
             item.title = res[i].title;
             item.no = res[i].no;
-            item.day = res[i].meetingDate.substring(0,10);
+            item.day = res[i].meetingDate;
             item.responsibleUnits = res[i].responsibleUnits;
-            item.allowTime = res[i].def3
-            item.progress = res[i].projectProgress
+            item.allowTime = res[i].def3;
+            item.progress = res[i].projectProgress;
+            item.show = true
             arr.push(item)
         }
         return arr
@@ -155,6 +147,7 @@ export default class List extends Component{
             item.c = res[i].fundsSum;
             item.d = res[i].investmentSum;
             item.e = res[i].def1;
+            item.show = true
             arr.push(item)
         }
         return arr
@@ -171,6 +164,7 @@ export default class List extends Component{
             item.e = res[i].investmentMoney;
             item.f = res[i].investmentCost;
             item.g = res[i].def1;
+            item.show = true
             arr.push(item)
         }
         return arr
@@ -187,6 +181,7 @@ export default class List extends Component{
             item.e = res[i].investmentMoney;
             item.f = res[i].investmentCost;
             item.g = res[i].def1;
+            item.show = true
             arr.push(item)
         }
         return arr
@@ -204,6 +199,7 @@ export default class List extends Component{
             item.f = res[i].investmentMoney;
             item.g = res[i].investmentCost;
             item.h = res[i].def1;
+            item.show = true
             arr.push(item)
         }
         return arr
@@ -221,6 +217,7 @@ export default class List extends Component{
             item.f = res[i].projectName;
             item.g = res[i].investmentMoney;
             item.h = res[i].def1;
+            item.show = true
             arr.push(item)
         }
         return arr
@@ -237,6 +234,7 @@ export default class List extends Component{
             item.e = res[i].investmentMoney;
             item.f = res[i].investmentCost;
             item.g = res[i].def1;
+            item.show = true
             arr.push(item)
         }
         return arr
@@ -255,6 +253,7 @@ export default class List extends Component{
             item.g = res[i].investmentMoney;
             item.h = res[i].investmentCost;
             item.i = res[i].def1;
+            item.show = true
             
             arr.push(item)
         }
@@ -272,6 +271,7 @@ export default class List extends Component{
             item.e = res[i].investmentYearSum;
             item.f = res[i].salesSum;
             item.g = res[i].def1;
+            item.show = true
             
             arr.push(item)
         }
@@ -289,12 +289,57 @@ export default class List extends Component{
             item.e = res[i].investmentYearSum;
             item.f = res[i].salesSum;
             item.g = res[i].def1;
+            item.show = true
+            
+            arr.push(item)
+        }
+        return arr
+    }
+    index11(res){
+        let arr =[]
+        for(let i=0;i<res.length;i++){
+            let item = {}
+            item.key = res[i].uuid;
+            item.a = res[i].financialCompany;
+            item.b = res[i].projectFrom;
+            item.c = res[i].projectTo;
+            item.d = res[i].projectTime;
+            item.e = res[i].projectPrice;
+            item.f = res[i].projectReceipt;
+            item.g = res[i].projectReceiptSum;
+            item.h = res[i].def1;
+            item.show = true
             
             arr.push(item)
         }
         return arr
     }
 
+    gosearch(text){
+        let _this = this
+        let {dataSource} = this.state;
+        this.myPromise(true).then(function(){
+            _this.setState({
+                loaded:true,
+            })
+        }).then(function(){
+            for(let i=0;i<dataSource.length;i++){
+                dataSource[i].show = false
+                for(let j in dataSource[i]){
+                    if(text == ''){
+                        dataSource[i].show = true
+                    }
+                    else if( typeof(dataSource[i][j]) == 'string' && dataSource[i][j].indexOf(text)>=0){
+                        dataSource[i].show = true
+                    }
+                }
+            }
+            _this.setState({
+                dataSource:dataSource,
+                loaded:false
+            })
+        })
+    }
 
     render() {
         
@@ -303,7 +348,7 @@ export default class List extends Component{
         return (
           <View style={styles.container}>
             <Image source={require('./image/menuTop.png')}  resizeMode='contain' style={[styles.backgroundTop,{height:myPt*244}]} /> 
-            <Myheader leftBtn="back" navigation={this.props.navigation} title={this.state.title}></Myheader>
+            <Myheader gosearch={this.gosearch.bind(this)} leftBtn="back" rightBtn="search" navigation={this.props.navigation} title={this.state.title}></Myheader>
             <View style={{width:myPt*355,flex:1,marginTop:20}}>
                     <FlatList
                         data={this.state.dataSource}
@@ -340,7 +385,7 @@ export default class List extends Component{
     }
 
     renderRow(item,index){
-        if(this.state.index==1){
+        if(this.state.index==1 && item.show){
             return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item.key)}>
                         <View style={styles.item1First}>
                             <Text style={styles.itemTitle}>{item.title}</Text>
@@ -363,7 +408,7 @@ export default class List extends Component{
                         </View>
                 </TouchableOpacity>
         }
-        if(this.state.index==2){
+        else if(this.state.index==2 && item.show){
             return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item.key)}>
                         <View style={styles.item1First}>
                             <Text style={styles.itemTitle}>{item.a}</Text>
@@ -386,7 +431,7 @@ export default class List extends Component{
                         </View>
                 </TouchableOpacity>
         }
-        if(this.state.index==3){
+        else if(this.state.index==3 && item.show){
             return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item.key)}>
                         <View style={styles.item1First}>
                             <Text style={styles.itemTitle}>{item.a}</Text>
@@ -417,7 +462,7 @@ export default class List extends Component{
                         </View>
                 </TouchableOpacity>
         }
-        if(this.state.index==4){
+        else if(this.state.index==4 && item.show){
             return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item.key)}>
                         <View style={styles.item1First}>
                             <Text style={styles.itemTitle}>{item.a}</Text>
@@ -448,7 +493,7 @@ export default class List extends Component{
                         </View>
                 </TouchableOpacity>
         }
-        if(this.state.index==5){
+        else if(this.state.index==5 && item.show){
             return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item.key)}>
                         <View style={styles.item1First}>
                             <Text style={styles.itemTitle}>{item.a}</Text>
@@ -482,7 +527,7 @@ export default class List extends Component{
                         </View>
                 </TouchableOpacity>
         }
-        if(this.state.index==6){
+        else if(this.state.index==6 && item.show){
             return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item.key)}>
                         <View style={styles.item1First}>
                             <Text style={styles.itemTitle}>{item.a}</Text>
@@ -516,7 +561,7 @@ export default class List extends Component{
                         </View>
                 </TouchableOpacity>
         }
-        if(this.state.index==7){
+        else if(this.state.index==7 && item.show){
             return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item.key)}>
                         <View style={styles.item1First}>
                             <Text style={styles.itemTitle}>{item.a}</Text>
@@ -547,7 +592,7 @@ export default class List extends Component{
                         </View>
                 </TouchableOpacity>
         }
-        if(this.state.index==8){
+        else if(this.state.index==8 && item.show){
             return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item.key)}>
                         <View style={styles.item1First}>
                             <Text style={styles.itemTitle}>{item.a}</Text>
@@ -586,7 +631,7 @@ export default class List extends Component{
                         </View>
                 </TouchableOpacity>
         }
-        if(this.state.index==9){
+        else if(this.state.index==9 && item.show){
             return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item.key)}>
                         <View style={styles.item1First}>
                             <Text style={styles.itemTitle}>{item.a}</Text>
@@ -616,7 +661,7 @@ export default class List extends Component{
                             <Text style={styles.itemContent}>{item.g}（万元）</Text>
                         </View>
                 </TouchableOpacity>
-        }if(this.state.index==10){
+        }else if(this.state.index==10 && item.show){
             return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item.key)}>
                         <View style={styles.item1First}>
                             <Text style={styles.itemTitle}>{item.a}</Text>
@@ -644,6 +689,40 @@ export default class List extends Component{
                         <View style={styles.item1First}>
                             <Text style={styles.itemlabel}>责任单位</Text>
                             <Text style={styles.itemContent}>{item.g}（万元）</Text>
+                        </View>
+                </TouchableOpacity>
+        }else if(this.state.index==11 && item.show){
+            return <TouchableOpacity style={styles.item} onPress={()=> this.godetail(item.key)}>
+                        <View style={styles.item1First}>
+                            <Text style={styles.itemTitle}>{item.a}</Text>
+                        </View>
+                        <View style={styles.item1First}>
+                            <Text style={styles.itemlabel}>合同起始日期</Text>
+                            <Text style={styles.itemContent}>{item.b}</Text>
+                        </View>
+                        <View style={styles.item1First}>
+                            <Text style={styles.itemlabel}>合同结束日期</Text>
+                            <Text style={styles.itemContent}>{item.c}</Text>
+                        </View>
+                        <View style={styles.item1First}>
+                            <Text style={styles.itemlabel}>合同期限</Text>
+                            <Text style={styles.itemContent}>{item.d}（年）</Text>
+                        </View>
+                        <View style={styles.item1First}>
+                            <Text style={styles.itemlabel}>合同金额</Text>
+                            <Text style={styles.itemContent}>{item.e}（万元）</Text>
+                        </View>
+                        <View style={styles.item1First}>
+                            <Text style={styles.itemlabel}>收款金额</Text>
+                            <Text style={styles.itemContent}>{item.f}（万元）</Text>
+                        </View>
+                        <View style={styles.item1First}>
+                            <Text style={styles.itemlabel}>已收金额</Text>
+                            <Text style={styles.itemContent}>{item.g}（万元）</Text>
+                        </View>
+                        <View style={styles.item1First}>
+                            <Text style={styles.itemlabel}>责任单位</Text>
+                            <Text style={styles.itemContent}>{item.h}（万元）</Text>
                         </View>
                 </TouchableOpacity>
         }

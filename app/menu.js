@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { StyleSheet,PanResponder,Animated,Linking,FlatList,TouchableOpacity,ToastAndroid,TouchableWithoutFeedback, Platform,ImageBackground,Dimensions, BackHandler, StatusBar,Text, View, Image} from 'react-native';
+import { StyleSheet,PanResponder,Animated,BackAndroid,Linking,FlatList,TouchableOpacity,ToastAndroid,TouchableWithoutFeedback, Platform,ImageBackground,Dimensions, BackHandler, StatusBar,Text, View, Image} from 'react-native';
 import storage from './gStorage';
 import MyFetch from './myFetch';
 import Myheader from './components/Myheader'
@@ -22,17 +22,25 @@ export default class Menu extends Component {
             bottomType:2,
             hasNext:true,
             Current:new Animated.Value(0),
-            colorArr:['#C05959','#757575','#5984C0','#68E180']
+            colorArr:['#C05959','#757575','#5984C0','#68E180'],
+            changeing:false
         }
     }
     componentWillMount() {
         this._onload()
         this._panResponder = PanResponder.create({
           // 要求成为响应者：
-          onStartShouldSetPanResponder: (evt, gestureState) => true,
+          onStartShouldSetPanResponder: (evt, gestureState) => false,
           onStartShouldSetPanResponderCapture: (evt, gestureState) => false,
-          onMoveShouldSetPanResponder: (evt, gestureState) => true,
-          onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
+          onMoveShouldSetPanResponder: (evt, gestureState) => {
+            let {dx,dy} = gestureState;
+            if((Math.abs(dx) > 20) || (Math.abs(dy) > 20)){
+                return true
+            }else{
+                return false
+            }
+          },
+          onMoveShouldSetPanResponderCapture: (evt, gestureState) => false,
     
           onPanResponderGrant: (evt, gestureState) => {
             // 开始手势操作。给用户一些视觉反馈，让他们知道发生了什么事情！
@@ -51,13 +59,13 @@ export default class Menu extends Component {
                 this.setState({
                     mainHeight:new Animated.Value(myPt*120+224*gestureState.dy/100),
                     itemImageTop:new Animated.Value(myPt*10+8*gestureState.dy/100),
-                    mainItemWidth:new Animated.Value(myPt*60+43*gestureState.dy/100),
+                    mainItemWidth:new Animated.Value(myPt*50+53*gestureState.dy/100),
                 })
             }else if(gestureState.dy<0 && gestureState.dy>-100){
                 this.setState({
                     mainHeight:new Animated.Value(myPt*344+224*gestureState.dy/100),
                     itemImageTop:new Animated.Value(myPt*18+10*gestureState.dy/100),
-                    mainItemWidth:new Animated.Value(myPt*103+43*gestureState.dy/100),
+                    mainItemWidth:new Animated.Value(myPt*103+53*gestureState.dy/100),
                 })
             }else if(gestureState.dy>=100){
                 this.setState({
@@ -71,7 +79,7 @@ export default class Menu extends Component {
                     type:false,
                     mainHeight:new Animated.Value(myPt*120),
                     itemImageTop:new Animated.Value(myPt*10),
-                    mainItemWidth:new Animated.Value(myPt*60),
+                    mainItemWidth:new Animated.Value(myPt*50),
                 })
             }
             // 从成为响应者开始时的累计手势移动距离为gestureState.d{x,y}
@@ -195,7 +203,7 @@ export default class Menu extends Component {
                 console.log(this.state.dataSource)
             },
             err => {
-            Alert.alert('登录发生错误：', err.message, [
+            Alert.alert('获取附件错误', err.message, [
                 { text: '确定' }
             ])
             }
@@ -244,44 +252,55 @@ export default class Menu extends Component {
             Animated.parallel([
                 Animated.timing(this.state.mainHeight, {
                   toValue: myPt*344,
-                  duration: 500,
+                  duration: 200,
                 }),
                 Animated.timing(this.state.itemImageTop, {
                     toValue: myPt*18,
-                    duration: 500,
+                    duration: 200,
                 }),
                 Animated.timing(this.state.mainItemWidth, {
                     toValue: myPt*103,
-                    duration: 500,
+                    duration: 200,
                 }),
                 // 可以添加其他动画
             ]).start(()=>{
                 this.setState({
-                    type:type
+                    type:type,
+                    changeing:false
                 })
             })
         }else{//变小
             Animated.parallel([
                 Animated.timing(this.state.mainHeight, {
                     toValue: myPt*120,
-                    duration: 500,
+                    duration: 200,
                 }),
                 Animated.timing(this.state.itemImageTop, {
                     toValue: myPt*10,
-                    duration: 500,
+                    duration: 200,
                 }),
                 Animated.timing(this.state.mainItemWidth, {
-                    toValue: myPt*60,
-                    duration: 500,
+                    toValue: myPt*50,
+                    duration: 200,
                 }),
                 // 可以添加其他动画
             ]).start(()=>{
                 this.setState({
-                    type:type
+                    type:type,
+                    changeing:false
                 })
             })
         }
     }
+
+    _onscroll(event){
+        if(this.state.changeing){
+            return ;
+        }else if(event.nativeEvent.contentOffset.y>=100){
+            this.changeMain(false)
+        }
+    }
+
     render() {
         return (
             <View style={styles.rootView}>
@@ -349,16 +368,22 @@ export default class Menu extends Component {
                                 {this.state.type?<Text style={styles.mainItemText}>房地产（招拍挂）</Text>:<View></View>}
                         </Animated.View>
                     </TouchableOpacity>
+                    <TouchableOpacity onPress={()=>this.goList(11)}>
+                        <Animated.View style={[styles.mainItem,{width:this.state.mainItemWidth}]}>
+                                <Animated.Image source={require('./image/mainItem/10.png')} style={[styles.mainItemImage,{marginTop:this.state.itemImageTop}]}  resizeMode='contain' />
+                                {this.state.type?<Text style={styles.mainItemText}>融资租赁</Text>:<View></View>}
+                        </Animated.View>
+                    </TouchableOpacity>
                 </Animated.View>
                 <View style={styles.centerView}>
                     <TouchableWithoutFeedback onPress={() => this.refreshing(2)} style={{}}>
-                        <Text style={{width:'33%',borderRightColor:'#7082A6',borderRightWidth:1,fontSize:12,textAlign:'center',color:'#9E9E9E'}}>投资动态</Text>
+                        <Text style={this.state.bottomType==2?{width:'33%',borderRightColor:'#7082A6',borderRightWidth:1,fontSize:12,textAlign:'center',color:'#000',fontWeight:'600'}:{width:'33%',borderRightColor:'#7082A6',borderRightWidth:1,fontSize:12,textAlign:'center',color:'#9E9E9E'}}>投资动态</Text>
                     </TouchableWithoutFeedback>
                     <TouchableWithoutFeedback onPress={() => this.refreshing(1)} style={{}}>
-                        <Text style={{width:'33%',borderRightColor:'#7082A6',borderRightWidth:1,fontSize:12,textAlign:'center',color:'#9E9E9E'}}>投资分析</Text>
+                        <Text style={this.state.bottomType==1?{width:'33%',borderRightColor:'#7082A6',borderRightWidth:1,fontSize:12,textAlign:'center',color:'#000',fontWeight:'600'}:{width:'33%',borderRightColor:'#7082A6',borderRightWidth:1,fontSize:12,textAlign:'center',color:'#9E9E9E'}}>投资分析</Text>
                     </TouchableWithoutFeedback>
                     <TouchableWithoutFeedback onPress={() => this.refreshing(3)} style={{}}>
-                        <Text style={{width:'33%',fontSize:12,textAlign:'center',color:'#9E9E9E'}}>附件下载</Text>
+                        <Text style={this.state.bottomType==3?{width:'33%',fontSize:12,textAlign:'center',color:'#000',fontWeight:'600'}:{width:'33%',fontSize:12,textAlign:'center',color:'#9E9E9E'}}>管理制度</Text>
                     </TouchableWithoutFeedback>
                 </View>
                 <View style={[styles.list,]}>
@@ -366,6 +391,7 @@ export default class Menu extends Component {
                         data={this.state.dataSource}
                         ListFooterComponent={this._footer.bind(this)}
                         onRefresh={this.refreshing.bind(this)}
+                        onScroll={this._onscroll.bind(this)}
                         refreshing={this.state.loaded}
                         initialNumToRender={2}
                         renderItem={({item,index}) => this.renderRow(item,index)}
